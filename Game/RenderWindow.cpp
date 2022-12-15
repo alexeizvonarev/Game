@@ -63,7 +63,8 @@ void RenderWindow::render(Entity& p_entity)
 	dst.y = p_entity.getDisplayPos().y;
 	dst.w = p_entity.getCurrentFrame().w;
 	dst.h = p_entity.getCurrentFrame().h;
-	SDL_RenderCopy(renderer, p_entity.getTex(), &src, &dst);
+
+	SDL_RenderCopyEx(renderer, p_entity.getTex(), &src, &dst, p_entity.angle, &p_entity.center, p_entity.display_mode);
 }
 void RenderWindow::renderHUD(ElementHUD& p_entity)
 {
@@ -78,6 +79,7 @@ void RenderWindow::renderHUD(ElementHUD& p_entity)
 	dst.y = p_entity.getDisplayPos().y;
 	dst.w = p_entity.getCurrentFrame().w;
 	dst.h = p_entity.getCurrentFrame().h;
+
 	SDL_RenderCopy(renderer, p_entity.getTex(), &src, &dst);
 }
 void RenderWindow::display()

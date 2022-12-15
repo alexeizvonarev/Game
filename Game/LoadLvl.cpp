@@ -51,7 +51,7 @@ LoadLvl::LoadLvl(const char* p_filePath, SDL_Texture* map_textures[], const int 
             x = 0;
         }
         else {
-            entities.push_back(Entity(Vector2f(x, y), Vector2f(x, y),Vector2f(0,0),map_textures[TileId]));
+            entities.push_back(Entity(Vector2f(x, y), Vector2f(x, y), Vector2f(0, 0), map_textures[TileId]));
             x += p_tileSize;
         }
     }

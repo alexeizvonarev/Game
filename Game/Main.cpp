@@ -89,10 +89,13 @@ int main(int argv, char* args[])
 
 	int player_title = level.getPlayerTile();
 	Vector2f Centre(HALF_WIDTH - TILE_SIZE / 2, HALF_HEIGHT - TILE_SIZE / 2);
-	//														Vector2f(HALF_WIDTH - TILE_SIZE/2, HALF_HEIGHT - TILE_SIZE/2)
+
+	//player create
+
 	Entity player(level.GetTitles()[player_title].getPos(), Centre, Vector2f(0, 0), map_textures[3], false);
-	SDL_Texture* = window.loadTexture("Data/Textures/Player/aim.png");
-	Entity gun(player.getPos(), Centre, Vector2f(0,0), )
+
+	SDL_Texture* curTex = window.loadTexture("Data/Textures/Player/railgun.png");
+	Entity gun(player.getPos(), Centre, Vector2f(0, 0), curTex, true, Vector2f(128, 64), 0, Vector2f(32,-1));
 
 	Mouse mouse("Data/Textures/Player/aim.png",*window.renderer);
 
@@ -177,18 +180,25 @@ int main(int argv, char* args[])
 				Vector2f e_p = level.getEntity(id).getPos();
 				level.setEntityDisplayPos(id, Vector2f(pd.x+e_p.x-p.x, pd.y +e_p.y-p.y));
 			}
-			mouse.mouse_pos.print();
 			//player.setDisplayPos(Vector2f(p.x + f.x, p.y + f.y));
+			float angle = utils::getAngleFromVector(mouse.mouse_pos.x, mouse.mouse_pos.y);
+			gun.angle = angle;
+			if (angle > 90 and angle < 270) { gun.display_mode = SDL_FLIP_VERTICAL; }
+			else{ gun.display_mode = SDL_FLIP_NONE; }
+			std::cout << angle << '\n';
 		}
 
 		const float alpha = accumulator / timeStep;
+
+		//render
 		window.clear();
 		
 		for (Entity& e : level.GetEntities()) {
 			window.render(e);
 		}
+		window.render(gun);
 		window.render(player);
-		
+
 		mouse.draw(*window.renderer);
 
 		window.display();

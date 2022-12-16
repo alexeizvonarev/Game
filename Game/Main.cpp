@@ -1,9 +1,11 @@
 #include <SDL.h>
 #include <SDL_image.h>
+#include <SDL_mixer.h>
 #include <iostream>
 #include <vector>
 #include <cmath> 
 
+#include "AudioControl.hpp"
 #include "Collisions.hpp"
 #include "HUD.hpp"
 #include "Utils.hpp"
@@ -11,7 +13,7 @@
 #include "RenderWindow.hpp"
 #include "LoadLvl.hpp"
 
-void keyboard(bool& game_state, bool* KEYS, Vector2f& Cursor) {
+void keyboard(bool& game_state, bool* KEYS, Vector2f& Cursor, bool& isPressed) {
 	// message processing loop
 	SDL_Event event;
 	int x;
@@ -28,6 +30,12 @@ void keyboard(bool& game_state, bool* KEYS, Vector2f& Cursor) {
 			game_state = 0; // set game state to done,(do what you want here)
 			break;
 			// check for keypresses
+		case SDL_MOUSEBUTTONDOWN:
+			isPressed = true;
+			break;
+		case SDL_MOUSEBUTTONUP:
+			isPressed = false;
+			break;
 		case SDL_KEYDOWN:
 			if (event.key.keysym.sym > 322) { break; }
 			KEYS[event.key.keysym.sym] = true;
@@ -44,7 +52,7 @@ void keyboard(bool& game_state, bool* KEYS, Vector2f& Cursor) {
 
 int main(int argv, char* args[])
 {
-	if (SDL_INIT_EVERYTHING < 0) {
+	if (SDL_INIT_EVERYTHING < 0 or Mix_Init(1) < 0) {
 		std::cout << "Error!" << std::endl;
 	}
 	else {
@@ -52,7 +60,9 @@ int main(int argv, char* args[])
 	}
 	const int DEFAULT_WIDTH = 1280;
 	const int DEFAULT_HEIGHT = 720;
-	int TILE_SIZE = 64;
+	const int TILE_SIZE = 64;
+	float TILE_DISPLAY_SIZE = 1;
+
 	const float MAX_SPEED = 3;
 	const float FORCE = 1;
 	const float JUMP_POWER = 8;
@@ -95,7 +105,10 @@ int main(int argv, char* args[])
 	Entity player(level.GetTitles()[player_title].getPos(), Centre, Vector2f(0, 0), map_textures[3], false);
 
 	SDL_Texture* curTex = window.loadTexture("Data/Textures/Player/railgun.png");
-	Entity gun(player.getPos(), Centre, Vector2f(0, 0), curTex, true, Vector2f(128, 64), 0, Vector2f(32,-1));
+
+	int smallest = 30;
+	int longest_hand = 10;
+	Entity gun(player.getPos(), Vector2f(Centre.x+TILE_SIZE/2+longest_hand, Centre.y + TILE_SIZE / 4 + longest_hand/2), Vector2f(0, 0), curTex, true, Vector2f(128 - smallest, 64 - smallest / 2), 0, Vector2f(-longest_hand, -longest_hand+32), SDL_FLIP_NONE, SDL_Rect{ 0,0,128,64 });
 
 	Mouse mouse("Data/Textures/Player/aim.png",*window.renderer);
 
@@ -116,6 +129,7 @@ int main(int argv, char* args[])
 
 	Vector2f Cursor(0, 0);
 
+	AudioControl fire("Data/Audio/Jump.mp3");
 	while (gameRunning)
 	{
 		mouse.update();
@@ -143,15 +157,12 @@ int main(int argv, char* args[])
 			if (KEYS[SDLK_w]) {
 				if (onGround) {
 					std::cout << "Try to jump*\n";
+					fire.Play();
 					y = -JUMP_POWER/2;
 					p.y -= JUMP_POWER/2;
 
 					player.SetGround(false);
 				}
-			}
-
-			if (KEYS[SDLK_PLUS]) {
-				TILE_SIZE += 12;
 			}
 
 			if (KEYS[SDLK_a]) {
@@ -164,28 +175,42 @@ int main(int argv, char* args[])
 					if (onGround) { x += FORCE; }
 					else { x += FORCE / 8; }
 			}
+			if (KEYS[SDLK_i]) {
+				for (int id = 0; id <= level.getEntCount(); id++) {
+					Entity &e = *level.getEntity(id);
+					Vector2f e_sz(e.getCurrentFrame().w, e.getCurrentFrame().h);
+
+					e.setSize(Vector2f(e_sz.x + 1 , e_sz.y + 1));
+					TILE_DISPLAY_SIZE += 0.0001;
+				}
+			}
+			std::cout << TILE_DISPLAY_SIZE << '\n';
 
 			Vector2f new_pos(x, y);
 			player.setForce(new_pos);
 
-			keyboard(gameRunning, KEYS, Cursor);
-			accumulator -= timeStep;
+			keyboard(gameRunning, KEYS, Cursor, mouse.isDown);
 
 			new_pos = Vector2f(p.x + f.x, p.y + f.y);
 			player.setPos(new_pos);
 
 			Vector2f pd = player.getDisplayPos();
 
+			player.setDisplayPos(Vector2f(pd.x, pd.y));
+			player.setSize(Vector2f(TILE_SIZE * TILE_DISPLAY_SIZE, TILE_SIZE * TILE_DISPLAY_SIZE));
+
 			for (int id = 0; id <= level.getEntCount(); id++) {
-				Vector2f e_p = level.getEntity(id).getPos();
-				level.setEntityDisplayPos(id, Vector2f(pd.x+e_p.x-p.x, pd.y +e_p.y-p.y));
+				Vector2f e_p = level.getEntity(id)->getPos();
+
+				level.setEntityDisplayPos(id, Vector2f((pd.x + e_p.x * TILE_DISPLAY_SIZE - p.x* TILE_DISPLAY_SIZE), (pd.y + e_p.y * TILE_DISPLAY_SIZE - p.y * TILE_DISPLAY_SIZE)));
 			}
 			//player.setDisplayPos(Vector2f(p.x + f.x, p.y + f.y));
 			float angle = utils::getAngleFromVector(mouse.mouse_pos.x, mouse.mouse_pos.y);
 			gun.angle = angle;
 			if (angle > 90 and angle < 270) { gun.display_mode = SDL_FLIP_VERTICAL; }
 			else{ gun.display_mode = SDL_FLIP_NONE; }
-			std::cout << angle << '\n';
+
+			accumulator -= timeStep;
 		}
 
 		const float alpha = accumulator / timeStep;

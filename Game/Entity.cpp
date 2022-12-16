@@ -2,8 +2,8 @@
 #include <SDL_image.h>
 #include "Entity.hpp"
 
-Entity::Entity(Vector2f p_pos, Vector2f p_dispos, Vector2f p_force, SDL_Texture* p_tex, bool isBlock, Vector2f p_size, double p_angle, Vector2f p_center, SDL_RendererFlip displayM)
-	:pos(p_pos), tex(p_tex), speed(p_force), display_pos(p_dispos)
+Entity::Entity(Vector2f p_pos, Vector2f p_dispos, Vector2f p_force, SDL_Texture* p_tex, bool isBlock, Vector2f p_size, double p_angle, Vector2f p_center, SDL_RendererFlip displayM, SDL_Rect p_slice)
+	:pos(p_pos), tex(p_tex), speed(p_force), display_pos(p_dispos), slice(p_slice)
 {
 	angle = p_angle;
 	display_mode = displayM;
@@ -31,4 +31,7 @@ SDL_Texture* Entity::getTex() {
 }
 SDL_Rect Entity::getCurrentFrame() {
 	return currentFrame;
+}
+SDL_Rect Entity::getSlice() {
+	return slice;
 }

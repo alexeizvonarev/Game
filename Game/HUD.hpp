@@ -23,6 +23,8 @@ private:
 class Mouse {
 public:
 	Vector2f mouse_pos;
+	bool isDown;
+
 	Mouse(const char* path, SDL_Renderer &ren) {
 		tex = IMG_LoadTexture(&ren,path);
 		rect.w = 32;

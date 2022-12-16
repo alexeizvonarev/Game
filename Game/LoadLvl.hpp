@@ -21,8 +21,8 @@ public:
 	void setEntityDisplayPos(int entity_id, Vector2f p_newPos);
 	void setTilePos(int tile_id, Vector2f p_newPos);
 
-	Entity getEntity(int entity_id) {
-		return entities[entity_id];
+	Entity* getEntity(int entity_id) {
+		return &entities[entity_id];
 	}
 	int getPlayerTile() { return tile_player; };
 	int getXmax() { return max_x; };

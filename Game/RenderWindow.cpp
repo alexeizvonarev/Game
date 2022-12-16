@@ -52,11 +52,7 @@ void RenderWindow::clear()
 }
 void RenderWindow::render(Entity& p_entity)
 {
-	SDL_Rect src;
-	src.x = p_entity.getCurrentFrame().x;
-	src.y = p_entity.getCurrentFrame().y;
-	src.w = p_entity.getCurrentFrame().w;
-	src.h = p_entity.getCurrentFrame().h;
+	SDL_Rect src = p_entity.getSlice();
 
 	SDL_Rect dst;
 	dst.x = p_entity.getDisplayPos().x;
